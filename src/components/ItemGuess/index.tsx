@@ -11,7 +11,8 @@ import {
   Input,
   InputWrapper,
   ProgressBar,
-  Reveal
+  Reveal,
+  UserOverlay
 } from "./styles"
 
 interface QuizTypes {
@@ -24,20 +25,22 @@ interface QuizTypes {
 interface Props {
   quizItem: any
   cardBackground: string
+  setCurrent: any
+  index: number
 }
 
 import "./style.css"
 import { QuizContext } from "../context/QuizContext"
 
-const ItemGuess = ({ quizItem, addCount, cardBackground }: Props) => {
-  const { volume } = useContext(QuizContext)
+const ItemGuess = ({ quizItem, addCount, cardBackground, index }: Props) => {
+  const { volume, setCurrent } = useContext(QuizContext)
   const audioRef = useRef(null)
   const [playing, setPlaying] = useState<boolean>(false)
   const [progress, setProgress] = useState<number>(0)
   const [correct, setCorrect] = useState<boolean>(false)
   const [forfeit, setForfeit] = useState<boolean>(false)
   const [input, setInput] = useState<string>("")
-  const { name, audioUrl, imageUrl, variations } = quizItem
+  const { name, audioUrl, imageUrl, variations, guessedBy, guessedColor } = quizItem
 
   const toggleAudio = () => {
     if(!audioRef.current) return
@@ -69,6 +72,7 @@ const ItemGuess = ({ quizItem, addCount, cardBackground }: Props) => {
 
   useEffect(() => {
     if(!variations.map(e => e.toLowerCase()).includes(input.toLowerCase())) return
+    if(guessedBy) return
 
     setCorrect(true)
   }, [input])
@@ -82,7 +86,7 @@ const ItemGuess = ({ quizItem, addCount, cardBackground }: Props) => {
   }, [volume])
 
   return (
-    <Item correct={correct}>
+    <Item color={guessedColor} correct={guessedBy || correct}>
       <TitleWrapper>
         <Title>{name}</Title>
         <Reveal onClick={() => setForfeit(true)}>
@@ -92,7 +96,8 @@ const ItemGuess = ({ quizItem, addCount, cardBackground }: Props) => {
         </Reveal>
       </TitleWrapper>
       <ImageWrapper onClick={toggleAudio}>
-        <Image src={correct || forfeit ? imageUrl : cardBackground} alt={name} />
+        <UserOverlay active={guessedBy}>{guessedBy}</UserOverlay>
+        <Image src={(correct || forfeit || guessedBy) ? imageUrl : cardBackground} alt={name} />
         <Image style={{ visibility: "hidden", pointerEvents: "none", width: 0, height: 0 }} src={imageUrl} alt={name} />
         <ProgressBar style={{ width: `${progress}%` }}/>
         { playing ? 
@@ -100,9 +105,9 @@ const ItemGuess = ({ quizItem, addCount, cardBackground }: Props) => {
         : <Pause className="play-status"/> }
       </ImageWrapper>
       <InputWrapper>
-        <Input disabled={forfeit} value={forfeit ? variations.join(", ") : input} style={forfeit ? { backgroundColor: "#f23f3f", color: "#fff" } : {}} onChange={({ target: { value } }) => setInput(value)} type="text" />
+        <Input disabled={forfeit || guessedBy} value={(forfeit || guessedBy) ? variations.join(", ") : input} style={forfeit ? { backgroundColor: "#f23f3f", color: "#fff" } : {}} onChange={({ target: { value } }) => setInput(value)} type="text" />
       </InputWrapper>
-      <audio onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onTimeUpdate={updateProgress} id="audio-item" ref={audioRef} src={audioUrl}></audio>
+      <audio onPlay={() => {setPlaying(true); setCurrent(() => index)}} onPause={() => {setPlaying(false); setCurrent(() => null)}} onTimeUpdate={updateProgress} id="audio-item" ref={audioRef} src={audioUrl}></audio>
     </Item>
   )
 }

@@ -1,92 +1,48 @@
 // @ts-nocheck 
 
 import { useContext, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import axios from 'axios'
+import { socket } from '../../config/socket';
 
-import { Main as MainWrapper, Grid, Count, Container, Title, Description, InputRange } from "./styles"
+import { Main as MainWrapper, Grid, Count, Container, Title, Description, InputRange, ChannelForm, ChannelInput, ChannelSubmit } from "./styles"
 import ItemGuess from "../ItemGuess";
 
-import { firebaseConfig } from "../../config/config";
-import { initializeApp } from "firebase/app";
-import { getDatabase, ref, onValue } from "firebase/database";
-import { getStorage, ref as storageRef, getDownloadURL } from "firebase/storage";
 import Loader from '../Loader';
 import { QuizContext } from '../context/QuizContext';
 
-const app = initializeApp(firebaseConfig);
-const storage = getStorage();
-const db = getDatabase(app);
+const URL = process.env.NODE_ENV === 'production' ? "https://tsunapop-0add06afd0c3.herokuapp.com/" : "http://localhost:5000"
 
 const Main = () => {
-  const { setVolume, volume } = useContext(QuizContext)
-  const { id } = useParams()
+  const { setVolume, volume, quiz, loading } = useContext(QuizContext)
   const [count, setCount] = useState<number>(0)
-  const [loading, setLoading] = useState(true)
-  const [quiz, setQuiz] = useState(null)
   const [time, setTime] = useState(0);
+  const [channel, setChannel] = useState("")
+  const [connect, setConnect] = useState(false)
 
   const addCount = () => setCount(count + 1)
 
-  useEffect(() => {
-    const starCountRef = ref(db, `quiz/${id}`)
+  const disconnect = (e) => {
+    e.preventDefault();
+    socket.disconnect()
 
-    onValue(starCountRef, async (snapshot) => {
-      const data = snapshot.val();
-      const { quizItems, id } = data
-      const cache = JSON.parse(window.localStorage.getItem("imageCache") || `{}`)
-      let cardUrl = ""
+    localStorage.removeItem('channel_name')
 
-      if(cache[`${id}_cover`]){
-        cardUrl = cache[`${id}_cover`]
-      }else{
-        const cardRef = await storageRef(storage, `gs://tsunapop-c2887.appspot.com/cover/${id}_cover`)
-        cardUrl = await getDownloadURL(cardRef)
+    setConnect(false)
+  }
+  
+  const connectToChat = (e) => {
+    e?.preventDefault();
 
-        cache[`${id}_cover`] = cardUrl
-      }
+    socket.disconnect()
 
-      const mappedQuiz = await quizItems.map(async ({ name, variations, audioId, imageId }) => {
-        let imageUrl = ""
-        let audioUrl = ""
+    socket.connect()
+    setConnect('loading')
 
-        if(cache[imageId]){
-          imageUrl = cache[imageId]
-        }else{
-          const imageRef = await storageRef(storage, `gs://tsunapop-c2887.appspot.com/${imageId}`)
-          imageUrl = await getDownloadURL(imageRef)
-
-          cache[imageId] = imageUrl
-        }
-
-        if(cache[audioId]){
-          audioUrl = cache[audioId]
-        }else{
-          const audioRef = await storageRef(storage, `gs://tsunapop-c2887.appspot.com/${audioId}`)
-          audioUrl = await getDownloadURL(audioRef)
-
-          cache[audioId] = audioUrl
-        }
-
-        window.localStorage.setItem("imageCache", JSON.stringify(cache))
-
-        return {
-          name,
-          variations,
-          imageUrl,
-          audioUrl
-        }
-      })
-
-      setQuiz({
-        ...data,
-        cardBackground: await cardUrl,
-        quizItems: await Promise.all(mappedQuiz).then(e => {
-          setLoading(false)
-          return e
-        })
-      })
-    });
-  }, [])
+    localStorage.setItem('channel_name', channel)
+    axios.post(`${URL}/init`, {
+      channel_name: channel
+    })
+  }
 
   useEffect(() => {
     if(count === quiz?.quizItems?.length) return
@@ -94,6 +50,18 @@ const Main = () => {
       setTime((time + 100))
     }, 1000)
   }, [time]);
+
+  useEffect(() => {
+    const cachedChannel = localStorage.getItem('channel_name')
+    if(cachedChannel){
+      setChannel(cachedChannel)
+      connectToChat()
+    }
+
+    socket.on("twitchConnected", () => {
+      setConnect(() => true)
+    })
+  }, [])
 
   const minutes = Math.floor((time % 360000) / 6000);
   const seconds = Math.floor((time % 6000) / 100);
@@ -111,8 +79,15 @@ const Main = () => {
               <Count>{minutes.toString().padStart(2, "0")}:
                 {seconds.toString().padStart(2, "0")}
               </Count>
+
+              <ChannelForm onSubmit={connect ? disconnect : connectToChat}>
+                <input autoComplete="false" name="hidden" type="text" style={{ display: 'none' }}></input>
+                <ChannelInput value={channel} autoComplete='off' onChange={(({target: { value }}) => setChannel(value))} placeholder="Nome do canal"></ChannelInput>
+                <ChannelSubmit type="submit">{connect ? connect === 'loading' ? 'Conectando...' :  "Desconectar" : "Conectar" }</ChannelSubmit>
+              </ChannelForm>
+
             </Container>
-            { quiz.quizItems.map((item) => <ItemGuess addCount={addCount} cardBackground={quiz.cardBackground} quizItem={item}/>) }
+            { quiz.quizItems.map((item, index) => <ItemGuess key={item.id} index={index} addCount={addCount} cardBackground={quiz.cardBackground} quizItem={item}/>) }
             <InputRange onChange={({ target: { value } }) => setVolume(parseInt(value))} value={volume} min={0} max={100} type="range" />
           </>
         }

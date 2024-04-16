@@ -42,3 +42,29 @@ export const InputRange = styled.input`
   bottom: 150px;
   color: rgb(90, 5, 149);
 `
+
+export const ChannelForm = styled.form`
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+`
+
+export const ChannelInput = styled.input`
+  width: 200px;
+  height: 38px;
+  outline: none;
+  border: 1px solid transparent;
+  padding: 0px 16px;
+  font-size: 16px;
+  border-radius: 4px;
+  transition: all 0.3s ease 0s;
+`
+
+export const ChannelSubmit = styled.button`
+  width: 100px;
+  height: 38px;
+  border: none;
+  border-radius: 4px;
+
+`
