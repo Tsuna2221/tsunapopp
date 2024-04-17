@@ -70,6 +70,22 @@ export const Reveal = styled.button`
   transform: translateY(-50%);
 `
 
+export const YouTubeButton = styled.a`
+  padding: 0px;
+  margin: 0px;
+  margin-right: 8px;
+  background: none;
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+`
+
 export const UserOverlay = styled.div<{active: string | undefined}>`
   position: absolute;
   display: flex;

@@ -79,7 +79,7 @@ const NewInstance = ({ index }: InstanceType) => {
     const arrayBuffer = await fileRef?.current.files[0].arrayBuffer();
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-    audioBufferSlice(audioBuffer, range.min * 1000, audioBuffer.duration  * 1000, function(error, slicedAudioBuffer) {
+    audioBufferSlice(audioBuffer, range.min * 1000, range.max * 1000, function(error, slicedAudioBuffer) {
       if (error) {
         console.error(error);
       } else {
@@ -113,7 +113,7 @@ const NewInstance = ({ index }: InstanceType) => {
     const arrayBuffer = await fileRef?.current.files[0].arrayBuffer();
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-    audioBufferSlice(audioBuffer, range.min * 1000, audioBuffer.duration * 1000, function(error, slicedAudioBuffer) {
+    audioBufferSlice(audioBuffer, range.min * 1000, range.max * 1000, function(error, slicedAudioBuffer) {
       if (error) {
         console.error(error);
       } else {
@@ -178,7 +178,7 @@ const NewInstance = ({ index }: InstanceType) => {
     axios
       .post(
         "https://tsunapop-0add06afd0c3.herokuapp.com/",
-        { url: input.quizItems[index].youtubeUrl },
+        { url: input.quizItems[index]?.youtubeUrl },
         {
           responseType: "blob"
         }

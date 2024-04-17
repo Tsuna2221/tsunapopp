@@ -134,7 +134,7 @@ const CreationProvider: React.FC<Props> = ({ children }) => {
       authorHandle: input.authorHandle,
       dmcaNotice: input.dmcaNotice,
       createdAt: +new Date(),
-      quizItems: input.quizItems.map(({cardTitle, variations, youtubeUrl}, index) => ({
+      quizItems: input.quizItems.map(({cardTitle, variations, youtubeUrl = ""}, index) => ({
         name: cardTitle,
         youtubeUrl,
         variations: variations.split(',').map((x: string) => x.trim()),

@@ -1,6 +1,6 @@
 // @ts-nocheck 
 
-import { useContext, useRef, useState } from 'react'
+import { useContext, useRef, useState, useEffect } from 'react'
 import { Checked, Unchecked } from '../../assets/icons/utils/CheckStatus'
 import { CreationContext } from '../context/CreationContext'
 import NewInstance from '../NewInstance'
@@ -153,6 +153,14 @@ const MainCreate = () => {
   }
 
   const handleCheck = ({ target: { checked, name } }) => setInput({...input, [name]: checked})
+
+  // useEffect(() => {
+  //   window.addEventListener('beforeunload', (e) => {
+  //     alert("!!")
+  //     console.log(e)
+  //   })
+
+  // }, [])
 
 
   return (

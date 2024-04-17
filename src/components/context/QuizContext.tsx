@@ -18,6 +18,12 @@ const db = getDatabase(app);
 interface CreationTypes {
   volume: number
   setVolume: Dispatch<React.SetStateAction<number>>
+  quiz: {
+    quizItems: Array<{
+      guessedBy: string
+    }>
+  }
+  connect: boolean
 }
 
 interface Props {
@@ -36,6 +42,7 @@ const QuizProvider: React.FC<Props> = ({ children }) => {
   const [currentPlaying, setCurrent] = useImmer(null)
   const [quiz, setQuiz] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [connect, setConnect] = useState(false)
 
   const join = ({ user }) => {
     setLeaderboard(previous => {
@@ -156,7 +163,7 @@ const QuizProvider: React.FC<Props> = ({ children }) => {
   return (
     <QuizContext.Provider
       value={{
-        volume, setVolume, loading, quiz, setCurrent, currentPlaying
+        volume, setVolume, loading, setQuiz, quiz, setCurrent, currentPlaying, connect, setConnect
       }}
     >
       {children}
