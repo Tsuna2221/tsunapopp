@@ -259,7 +259,7 @@ const NewInstance = ({ index }: InstanceType) => {
           {
             !duration ? (
               <Flex style={{ gap: 14, alignItems: 'center', marginLeft: 16, width: '100%' }}>
-                <TextInput value={input.quizItems[index].youtubeUrl} onChange={handleTextInput} name="youtubeUrl" title="Link do YouTube"/> 
+                {/* <TextInput value={input.quizItems[index].youtubeUrl} onChange={handleTextInput} name="youtubeUrl" title="Link do YouTube"/> 
 
                 <UploadArea style={{ minWidth: 55 }} width={55} height={55} radius={7}>
                   <SVGItem width={20} height={20} viewBox="0 0 24 24">
@@ -270,7 +270,7 @@ const NewInstance = ({ index }: InstanceType) => {
                       <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
                     </svg>
                   </Button>
-                </UploadArea>
+                </UploadArea> */}
                 <Label style={{ color: "#f00", fontSize: 12, width: 200 }}>{errorLog[index]}</Label>
               </Flex>
             ) : null
