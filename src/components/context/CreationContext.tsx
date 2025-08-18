@@ -67,9 +67,10 @@ const CreationProvider: React.FC<Props> = ({ children }) => {
     dmcaNotice: false,
     mainImage: null as null | Blob,
     quizItems: [
-
     ]
   })
+
+  console.log(input)
 
   const setMainImage = (blob: Blob) => setInput({...input, mainImage: blob})
 
@@ -101,7 +102,6 @@ const CreationProvider: React.FC<Props> = ({ children }) => {
     const filterQuiz = inputClone.filter((_, ind) => index !== ind)
 
     setInput({...input, quizItems: filterQuiz })
-    // setMusicList(filterMusic)
   }
 
   const addProgress = (prog: number, max: number) => setUpload([prog, max])

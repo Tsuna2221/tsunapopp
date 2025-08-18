@@ -5,6 +5,8 @@ import audioBufferSlice from 'audiobuffer-slice'
 import toWav from 'audiobuffer-to-wav'
 import InputRange from 'react-input-range';
 import imagejs from 'image-js'
+import audiobufferToBlob from 'audiobuffer-to-blob';
+import arrayBufferToAudioBuffer from 'arraybuffer-to-audiobuffer'
 
 import { ImageSelected, InstanceContainer, Button } from './styles';
 import { Container, Flex, Input, SVGItem, UploadArea, InputField, Label } from '../MainCreate/styled';
@@ -12,8 +14,9 @@ import { Container, Flex, Input, SVGItem, UploadArea, InputField, Label } from '
 import './range.css'
 import { Pause, Play } from '../../assets/icons/utils/AudioStatus';
 import { CreationContext } from '../context/CreationContext';
-import { socket } from '../../config/socket';
+import { URL as socketURL, socket } from '../../config/socket';
 import axios from 'axios'
+import { audioBufferToMp3Blob, sliceAudioBuffer } from './audioHelper';
 
 
 interface InputType {
@@ -79,26 +82,15 @@ const NewInstance = ({ index }: InstanceType) => {
     const arrayBuffer = await fileRef?.current.files[0].arrayBuffer();
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-    audioBufferSlice(audioBuffer, range.min * 1000, range.max * 1000, function(error, slicedAudioBuffer) {
-      if (error) {
-        console.error(error);
-      } else {
-        try {
-          const wav = toWav(slicedAudioBuffer)
+    // const slice = util.slice(audioBuffer, 0, 5 * 100000)
+    const slice = sliceAudioBuffer(audioBuffer, range.min, range.max)
 
-          const blob = new Blob([ new DataView(wav) ], {
-            type: 'audio/mpeg'
-          })
+    const blob = audioBufferToMp3Blob(slice);
 
-          const url = URL.createObjectURL(blob)
-  
-          audioRef.current.src = url
-          audioRef.current.play()
-        } catch (error) {
-          setLogger(JSON.stringify(error))
-        }
-      }
-    });
+    const url = URL.createObjectURL(blob)
+
+    audioRef.current.src = url
+    audioRef.current.play()
   }
 
   const pauseInProgress = (e) => {
@@ -113,23 +105,10 @@ const NewInstance = ({ index }: InstanceType) => {
     const arrayBuffer = await fileRef?.current.files[0].arrayBuffer();
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-    audioBufferSlice(audioBuffer, range.min * 1000, range.max * 1000, function(error, slicedAudioBuffer) {
-      if (error) {
-        console.error(error);
-      } else {
-        try {
-          const wav = toWav(slicedAudioBuffer)
+    const slice = sliceAudioBuffer(audioBuffer, range.min, range.max)
+    const blob = audioBufferToMp3Blob(slice);
 
-          const blob = new Blob([ new DataView(wav) ], {
-            type: 'audio/mpeg'
-          })
-
-          return appendAudioBlob(blob, index)
-        } catch (error) {
-          setLogger(JSON.stringify(error))
-        }
-      }
-    })
+    appendAudioBlob(blob, index)
   }
 
   const handleAudioUpload = async (e) => {
@@ -141,29 +120,11 @@ const NewInstance = ({ index }: InstanceType) => {
 
     setDuration(audioBuffer.duration)
 
-    audioBufferSlice(audioBuffer, range.min * 1000, audioBuffer.duration * 1000, function(error, slicedAudioBuffer) {
-      if (error) {
-        console.error(error);
-      } else {
-        try {
-          const wav = toWav(slicedAudioBuffer)
+    const slice = sliceAudioBuffer(audioBuffer, range.min, range.max)
 
-          const blob = new Blob([ new DataView(wav) ], {
-            type: 'audio/mpeg'
-          })
+    const blob = audioBufferToMp3Blob(slice);
 
-          if(audioRef.current){
-            audioRef.current.pause()
-            audioRef.current.currentTime = 0
-          }
-  
-          return appendAudioBlob(blob, index)
-        } catch (error) {
-          console.log(error)
-          setLogger(JSON.stringify(error))
-        }
-      }
-    })
+    appendAudioBlob(blob, index)
   }
 
   const handleYTInput = (({ target: { value } }) => setYTUrl(value))
@@ -177,11 +138,11 @@ const NewInstance = ({ index }: InstanceType) => {
 
     axios
       .post(
-        "https://tsunapop-0add06afd0c3.herokuapp.com/",
+        socketURL,
         { url: input.quizItems[index]?.youtubeUrl },
-        {
-          responseType: "blob"
-        }
+        // {
+        //   responseType: "blob"
+        // }
       )
       .catch(err => console.log(err))
       .then(async (response) => {
@@ -242,10 +203,34 @@ const NewInstance = ({ index }: InstanceType) => {
     return ret;
   }
 
+  const handleNewUpload = async (audioBuffer) => {
+    const audioContext = new AudioContext();
+
+    setDuration(audioBuffer.duration)
+
+    const slice = sliceAudioBuffer(audioBuffer, range.min, range.max)
+
+    const data = audioBufferToMp3Blob(slice);
+
+    fileRef.current = {
+      files: [data]
+    }
+
+    appendAudioBlob(data, index)
+  }
+
   useEffect(() => {
-    console.log(socket)
+    socket.connect()
     socket.on("videoDetails", (details) => console.log(details))
+    socket.on("buffer", (details) => arrayBufferToAudioBuffer(details).then(buffer => {
+      // var blob = audiobufferToBlob(buffer)
+      // blob = blob.slice(0, blob.size, "audio/wav")
+      
+      handleNewUpload(buffer)
+    }))
   }, [])
+
+  
 
   return (
     <Flex style={{ gap: 32, marginBottom: 40, alignItems: "flex-start" }}>
