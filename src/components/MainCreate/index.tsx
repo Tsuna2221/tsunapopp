@@ -156,10 +156,8 @@ const MainCreate = () => {
 
   const handleAudioUpload = ({target}) => {
     const newMap = [...Array(target.files.length)].map((_, index) => {
-      setQuizInput({ target: { name: "cardTitle", value: index + 1 } }, index)
-      return { ytProgress: 0, cardTitle: '', variations: '', audioBlob: null, imageBlob: null, name: target.files[index].name, file: target.files[index] }
+      return { ytProgress: 0, cardTitle: index + 1, variations: '', audioBlob: null, imageBlob: null, name: target.files[index].name, file: target.files[index] }
     })
-
 
     setInput({...input, quizItems: [...input.quizItems, ...newMap]})
   }
