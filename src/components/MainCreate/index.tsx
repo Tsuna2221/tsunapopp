@@ -88,7 +88,7 @@ const requiredQuiz = [
 ]
 
 const MainCreate = () => {
-  const { input, setInput, setMainImage, createInstance, uploadProgress, setLogger, logger } = useContext(CreationContext)
+  const { input, setInput, setMainImage, createInstance, uploadProgress, setLogger, logger, setQuizInput } = useContext(CreationContext)
   const imageFileRef = useRef(null)
   const [imageLoaded, setImageLoad] = useState<boolean>(false)
 
@@ -155,7 +155,12 @@ const MainCreate = () => {
   const handleCheck = ({ target: { checked, name } }) => setInput({...input, [name]: checked})
 
   const handleAudioUpload = ({target}) => {
-    const newMap = [...Array(target.files.length)].map((_, index) => ({ ytProgress: 0, cardTitle: '', variations: '', audioBlob: null, imageBlob: null, name: target.files[index].name, file: target.files[index] }))
+    const newMap = [...Array(target.files.length)].map((_, index) => {
+      setQuizInput({ target: { name: "cardTitle", value: index + 1 } }, index)
+      return { ytProgress: 0, cardTitle: '', variations: '', audioBlob: null, imageBlob: null, name: target.files[index].name, file: target.files[index] }
+    })
+
+
     setInput({...input, quizItems: [...input.quizItems, ...newMap]})
   }
 
