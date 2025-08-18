@@ -154,14 +154,10 @@ const MainCreate = () => {
 
   const handleCheck = ({ target: { checked, name } }) => setInput({...input, [name]: checked})
 
-  // useEffect(() => {
-  //   window.addEventListener('beforeunload', (e) => {
-  //     alert("!!")
-  //     console.log(e)
-  //   })
-
-  // }, [])
-
+  const handleAudioUpload = ({target}) => {
+    const newMap = [...Array(target.files.length)].map((_, index) => ({ ytProgress: 0, cardTitle: '', variations: '', audioBlob: null, imageBlob: null, name: target.files[index].name, file: target.files[index] }))
+    setInput({...input, quizItems: [...input.quizItems, ...newMap]})
+  }
 
   return (
     <Main>
@@ -186,6 +182,20 @@ const MainCreate = () => {
             <CheckInput onChange={handleCheck} name="dmcaNotice" title="Contem musica licenciada (DMCA)"/>
           </Container>
         </Flex>
+
+        <Container>
+          <Label style={{ marginTop: 50 }}>Upload em massa (Novo)</Label>
+          <UploadArea>
+            <SVGItem viewBox="0 0 24 24">
+              <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+            </SVGItem>
+            <Input onChange={handleAudioUpload} accept=".mp3,.wav,.mpeg" type="file" multiple={true}/>
+          </UploadArea>
+          <Flex style={{ position: 'relative', width: "100%", height: "30px", marginTop: 20, border: "1px solid #fff" }}>
+            <ProgressBar barWidth={(input.quizItems.filter(x => x.audioBlob).length / input.quizItems.length) * 100}/>
+          </Flex>
+        </Container>
+
         <Label style={{ marginTop: 50 }}>Lista de Musicas</Label>
         {
           input.quizItems.map((_, index) => <NewInstance index={index} key={index}/>)

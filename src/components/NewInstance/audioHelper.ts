@@ -25,7 +25,6 @@ export const sliceAudioBuffer = (originalBuffer, startTime, endTime) => {
     const endOffset = Math.floor(endTime * originalBuffer.sampleRate);
 
     // Ensure valid slice range
-    console.log(endOffset, originalBuffer.length)
     if (startOffset < 0 || endOffset > originalBuffer.length || startOffset >= endOffset) {
         console.error("Invalid slice range.");
         return null;

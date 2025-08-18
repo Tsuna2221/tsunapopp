@@ -220,15 +220,40 @@ const NewInstance = ({ index }: InstanceType) => {
   }
 
   useEffect(() => {
-    socket.connect()
-    socket.on("videoDetails", (details) => console.log(details))
-    socket.on("buffer", (details) => arrayBufferToAudioBuffer(details).then(buffer => {
-      // var blob = audiobufferToBlob(buffer)
-      // blob = blob.slice(0, blob.size, "audio/wav")
-      
-      handleNewUpload(buffer)
-    }))
+    const init = async () => {
+      const file = input.quizItems[index].file
+
+      if(file){
+        const audioContext = new AudioContext();
+        const arrayBuffer = await file.arrayBuffer();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+        fileRef.current = {
+          files: [file]
+        }
+
+        setDuration(audioBuffer.duration)
+
+        const slice = sliceAudioBuffer(audioBuffer, range.min, range.max)
+
+        const blob = audioBufferToMp3Blob(slice);
+
+        appendAudioBlob(blob, index)
+      }
+    }
+
+    init()
   }, [])
+  // useEffect(() => {
+  //   socket.connect()
+  //   socket.on("videoDetails", (details) => console.log(details))
+  //   socket.on("buffer", (details) => arrayBufferToAudioBuffer(details).then(buffer => {
+  //     // var blob = audiobufferToBlob(buffer)
+  //     // blob = blob.slice(0, blob.size, "audio/wav")
+      
+  //     handleNewUpload(buffer)
+  //   }))
+  // }, [])
 
   
 
@@ -244,6 +269,11 @@ const NewInstance = ({ index }: InstanceType) => {
         </UploadArea>
       </InstanceContainer>
       <Container>
+        {
+          input.quizItems[index].name ? (
+            <Label style={{ fontSize: 12, width: 800 }}>{input.quizItems[index].name}</Label>
+          ) : null
+        }
         <TextInput value={input.quizItems[index].cardTitle} onChange={handleTextInput} name="cardTitle" title="Titulo do Card"/> 
         <TextInput value={input.quizItems[index].variations} onChange={handleTextInput} name="variations" title="Respostas (Separe por virgulas)"/>
         <Label>Seleção de Musica</Label>
