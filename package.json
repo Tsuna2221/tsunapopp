@@ -10,8 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "arraybuffer-to-audiobuffer": "^0.0.5",
     "audio-buffer-utils": "^5.1.2",
+    "arraybuffer-to-audiobuffer": "^0.0.5",
     "audiobuffer": "^0.2.0",
     "audiobuffer-slice": "^0.0.7",
     "audiobuffer-to-blob": "^1.0.2",
